@@ -1,0 +1,708 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Horizon</title>
+<meta name="description" content="Your #1 Digital Marketplace on Discord" />
+<link rel="icon" href="https://i.imgur.com/aeJ0H1f.png" />
+<style>
+  :root{
+    --bg:#0a0714;         /* deep purple-black */
+    --bg2:#140e2b;        /* deep purple */
+    --ink:#f3efff;        /* text */
+    --muted:#c0b9d8;      /* secondary text */
+    --brand:#8F71D8;      /* purple */
+    --brand-2:#a891e6;    /* soft purple */
+    --ring:0 0 0 1px rgba(143,113,216,.28),0 0 40px rgba(143,113,216,.14);
+    --radius:16px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --header-h:64px;
+    --dot: rgba(143,113,216,.03); /* base dot tint */
+    --dot-size: 22px;            /* base dot size */
+
+    /* links */
+    --link:#a78bfa;
+    --link-hover:#d4c7ff;
+
+    /* cursor glow vars */
+    --gx:-1000px; --gy:-1000px;
+    --gtx:-1000px; --gty:-1000px;
+
+    /* parallax for dotted layer */
+    --bgx: 0px; --bgy: 0px;
+  }
+
+  /* Background: modern aurora + subtle dotted grid + vignette */
+  html,body{height:100%}
+  html{scroll-behavior:smooth; scroll-padding-top: 72px;}
+  body{
+    margin:0; color:var(--ink);
+    font:400 16px/1.65 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; letter-spacing:.2px;
+    background:
+      radial-gradient(circle at 12px 12px, var(--dot) 1.05px, transparent 1.2px) var(--bgx) var(--bgy)/var(--dot-size) var(--dot-size),
+      radial-gradient(1200px 800px at 10% -10%, rgba(143,113,216,.10), transparent 60%),
+      radial-gradient(1200px 800px at 100% 110%, rgba(147,112,219,.06), transparent 60%),
+      linear-gradient(180deg,#070310 0%, #0b0616 55%, #090612 100%);
+    overflow-x:hidden; background-attachment: fixed,fixed,fixed,fixed;
+  }
+  /* When glow is active, brighten and slightly enlarge the dot grid */
+  body.glow-active{ --dot: rgba(143,113,216,.08); --dot-size: 26px; }
+
+  body::before{
+    content:""; position:fixed; inset:-25%;
+    background:
+      radial-gradient(40% 60% at 20% 10%, rgba(143,113,216,.18), transparent 60%),
+      radial-gradient(35% 55% at 80% 15%, rgba(168,145,230,.12), transparent 60%),
+      radial-gradient(45% 60% at 60% 90%, rgba(147, 112, 219, .10), transparent 60%),
+      conic-gradient(from 120deg at 50% 50%, rgba(143,113,216,.14), rgba(0,0,0,0) 30%, rgba(168,145,230,.12), rgba(0,0,0,0) 70%, rgba(143,113,216,.14));
+    filter: blur(60px) saturate(120%);
+    opacity:.45; mix-blend-mode:screen; pointer-events:none; z-index:0;
+    animation: aurora 22s var(--ease) infinite alternate;
+  }
+  body::after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: radial-gradient(1200px 800px at 50% 10%, transparent, rgba(0,0,0,.25) 80%);
+  }
+  @keyframes aurora{
+    0%{transform: translate3d(-2%, -2%, 0) scale(1.02) rotate(0.5deg)}
+    100%{transform: translate3d(2%, 2%, 0) scale(1.05) rotate(-0.5deg)}
+  }
+
+  .wrap{position:relative; z-index:1}
+
+  /* Header */
+  header{position:sticky; top:0; z-index:20; backdrop-filter:saturate(1.2) blur(10px);
+    background:rgba(10,7,20,.92); border-bottom:1px solid rgba(143,113,216,.16)}
+  .bar{max-width:1200px; margin:auto; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; padding:10px 16px; min-height:var(--header-h)}
+  .logo{display:flex; align-items:center; gap:10px; color:var(--ink); text-decoration:none; font-weight:800}
+  .logo img{width:28px; height:28px; border-radius:8px}
+
+  nav{justify-self:center; display:flex; gap:8px}
+  nav a{
+    position:relative; display:inline-flex; align-items:center; gap:8px;
+    padding:10px 12px; border-radius:10px; text-decoration:none; color:var(--ink);
+    opacity:.9; transition:opacity .2s var(--ease), transform .18s var(--ease), background .2s var(--ease);
+  }
+  nav a::after{
+    content:""; position:absolute; left:12px; right:12px; bottom:6px; height:2px;
+    background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    transform:scaleX(0); transform-origin:center; transition:transform .25s var(--ease);
+  }
+  nav a:hover::after{transform:scaleX(1)}
+  nav a:hover{opacity:1; background:rgba(143,113,216,.10); transform:translateY(-1px)}
+
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px;
+       text-decoration:none; color:#f7f3ff; background:var(--brand); font-weight:700; box-shadow:none}
+  .btn.alt{background:#1a1033; color:#e8e0ff; border:1px solid rgba(143,113,216,.35)}
+
+  /* Mobile menu */
+  .burger{display:none; margin-left:auto; background:transparent; border:0; padding:8px}
+  .burger svg{display:block}
+  @media (max-width:760px){
+    nav{display:none}
+    nav.open{display:flex; position:absolute; right:12px; top:calc(var(--header-h) - 6px);
+      flex-direction:column; background:#17142d; border:1px solid rgba(143,113,216,.12);
+      border-radius:12px; padding:8px; z-index:50}
+    .burger{display:block}
+  }
+
+  /* Sections */
+  section{max-width:1200px; margin:0 auto; padding:26px 16px}
+  h1{font-size:clamp(28px,6vw,48px); line-height:1.08; margin:8px 0 10px}
+  h2{font-size:clamp(22px,4.2vw,32px); margin:0 0 12px}
+  h3{font-size:18px; margin:14px 0 8px}
+  .muted{color:var(--muted)}
+  .kbd{display:inline-block; border:1px solid rgba(255,255,255,.2); border-bottom-width:2px; padding:2px 6px; border-radius:6px;
+       background:rgba(255,255,255,.06); font:600 .85em ui-monospace,Menlo,Consolas,monospace}
+
+  /* Global link styling (non-button links) */
+  :where(section) a:not(.btn){
+    color:var(--link);
+    text-decoration:none;
+    border-bottom:1px dashed rgba(167,139,250,.25);
+  }
+  :where(section) a:not(.btn):hover{
+    color:var(--link-hover);
+    border-bottom-style:solid;
+  }
+
+  /* Cards & grid */
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    border:1px solid rgba(143,113,216,.12); border-radius:var(--radius); padding:16px}
+  .tilt{will-change:transform; transition:transform .12s var(--ease)}
+  .tilt:hover{transform:translateY(-1px)}
+  .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
+  .span-8{grid-column:span 8} .span-4{grid-column:span 4} .span-6{grid-column:span 6} .span-12{grid-column:span 12}
+  @media (max-width:960px){ .grid{grid-template-columns:1fr} .span-8,.span-4,.span-6,.span-12{grid-column:1 / -1} }
+
+  /* Checklist — darker dark purple boxes */
+  .checklist{display:grid; gap:12px}
+  .tick{
+    position:relative; display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border-radius:14px;
+    background:#0f0733; /* darker purple per request */
+    border:1px solid rgba(143,113,216,.12);
+    transition: transform .14s var(--ease);
+  }
+  .tick:hover{ transform: translateY(-1px); }
+  .tick::before, .tick::after{ content:none }
+
+  .dot{
+    flex:0 0 28px; width:28px; height:28px; border-radius:10px; display:grid; place-items:center;
+    background: radial-gradient(100% 100% at 50% 0%, #a891e6 0%, #8F71D8 45%, #7b68ee 100%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.25), 0 6px 16px rgba(143,113,216,.12);
+    position:relative;
+  }
+  .dot::after{
+    content:""; position:absolute; inset:0;
+    --check: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" fill="none" stroke="%23ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background:#fff; -webkit-mask:var(--check) center/70% 70% no-repeat; mask:var(--check) center/70% 70% no-repeat;
+  }
+
+  /* Tabs */
+  .tabbar{display:flex; gap:10px; align-items:center; margin:10px 0 18px; background:rgba(255,255,255,.02);
+    border:1px solid rgba(143,113,216,.14); padding:8px; border-radius:14px}
+  .tab{border:1px solid rgba(143,113,216,.25); background:rgba(255,255,255,.04); color:#e8e0ff;
+       padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700;
+       transition:transform .18s var(--ease), background .2s var(--ease), border-color .2s var(--ease)}
+  .tab.active{border-color:rgba(143,113,216,.6); box-shadow:none; background:rgba(143,113,216,.08)}
+  .views{position:relative; will-change:height; isolation:isolate}
+  .view{position:relative}
+  .hidden{display:none}
+
+  /* Scroll reveal */
+  .reveal{opacity:0; transform:translateY(16px) scale(.985); filter:blur(8px); will-change:opacity,transform,filter}
+  .reveal.show{opacity:1; transform:none; filter:none; transition:opacity .6s var(--ease), transform .6s var(--ease), filter .6s var(--ease)}
+
+  /* Accordion */
+  .accordion{display:grid; gap:10px}
+  .acc{border:1px solid rgba(143,113,216,.12); border-radius:14px; background:rgba(255,255,255,.03); overflow:hidden}
+  .acc > button{
+    all:unset; display:flex; width:100%; align-items:center; justify-content:space-between;
+    padding:14px 16px; cursor:pointer; border-radius:inherit; box-sizing:border-box;
+  }
+  .acc h4{margin:0; font-size:16px}
+  .acc .chev{flex:0 0 20px; width:20px; height:20px; margin-left:12px; transition:transform .25s var(--ease)}
+  .acc[open] .chev{transform:rotate(180deg)}
+  .acc .body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .75s var(--ease);
+  border-top: 1px solid rgba(143,113,216,.14);
+}
+
+.acc[open] .body {
+  max-height: none; /* Let it expand naturally */
+}
+
+  /* Smooth intro & crossfades */
+  .page-enter{opacity:0; transform:translateY(10px); filter:blur(6px)}
+  .page-enter-active{opacity:1; transform:none; filter:blur(0); transition:opacity .6s var(--ease), transform .6s var(--ease), filter .6s var(--ease)}
+  .xfade-enter{opacity:0; transform:translateY(8px) scale(.985); filter:blur(4px)}
+  .xfade-enter-active{opacity:1; transform:none; filter:blur(0); transition:opacity .45s var(--ease), transform .45s var(--ease), filter .45s var(--ease)}
+  .xfade-exit{opacity:1}
+  .xfade-exit-active{opacity:0; transform:translateY(-8px) scale(.985); filter:blur(6px); transition:opacity .45s var(--ease), transform .45s var(--ease), filter .45s var(--ease)}
+
+  /* Typing effect */
+  .typed{display:inline-block; border-right:2px solid var(--brand); padding-right:4px; white-space:nowrap; overflow:hidden}
+
+  footer{padding:40px 16px 64px; border-top:1px solid rgba(143,113,216,.16); background:rgba(12,9,26,.9)}
+  .links{display:flex; gap:12px; flex-wrap:wrap} .links a{color:#e8e0ff; text-decoration:none; opacity:.9}
+  .links a:hover{opacity:1; text-decoration:underline}
+
+  @media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important} body::before{opacity:.25} }
+
+  /* Cursor-follow glow */
+  .glow,.glow-tail{
+    position:fixed; inset:0; pointer-events:none; z-index:1000; mix-blend-mode:screen;
+    opacity:0; transition:opacity .18s var(--ease);
+  }
+  .glow.ready,.glow-tail.ready{opacity:1}
+  .glow::before{
+    content:""; position:absolute; width:420px; height:420px;
+    left: var(--gx); top: var(--gy); transform:translate(-50%,-50%);
+    background: radial-gradient(closest-side at 50% 50%, rgba(143,113,216,.11), transparent 65%);
+    filter:blur(18px);
+  }
+  .glow-tail::before{
+    content:""; position:absolute; width:280px; height:280px;
+    left: var(--gtx); top: var(--gty); transform:translate(-50%,-50%);
+    background: radial-gradient(closest-side at 50% 50%, rgba(168,145,230,.10), transparent 70%);
+    filter:blur(32px);
+  }
+
+  /* Actions group (header buttons) */
+  .actions{display:flex; gap:8px; align-items:center}
+
+  /* Interactive tilt */
+  .card, .btn, .tab{position:relative}
+  .tilt, .btn, .tab{transform-style:preserve-3d; will-change:transform}
+
+.tooltip-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.info-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin-left: 8px;
+  cursor: pointer;
+  filter: drop-shadow(0 0 4px rgba(143,113,216,0.6));
+  transition: transform 0.2s var(--ease);
+}
+
+.info-icon:hover {
+  transform: scale(1.15);
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  width: max-content;
+  max-width: 220px;
+  background: rgba(143,113,216, 0.12);
+  color: var(--ink);
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(143,113,216,0.35);
+  position: absolute;
+  z-index: 100;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  box-shadow: 0 0 12px rgba(143,113,216,0.25);
+  transition: opacity 0.15s var(--ease), visibility 0.15s var(--ease);
+}
+
+.tooltip-wrap:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="glow-tail" aria-hidden="true"></div>
+  <div class="wrap page-enter" id="root">
+    <header>
+      <div class="bar">
+        <a class="logo" href="index.php">
+          <img alt="Horizon" src="https://i.imgur.com/ZAiBvHV.gif" />
+          <span>Horizon</span>
+        </a>
+        <button class="burger" aria-label="Menu" aria-expanded="false">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="#bfefff" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <nav id="nav">
+          <a href="index.php">Main</a>
+          <a href="terms">TOS</a>
+        </nav>
+        <div class="actions">
+          <a class="btn alt" href="https://Horizon.mp" target="_blank" rel="noopener">Horizon.mp</a>
+          <a class="btn" href="https://discord.gg/landcruiser" target="_blank" rel="noopener">Discord</a>
+        </div>
+      </div>
+    </header>
+
+
+
+    <!-- Guides -->
+    <section id="guides">
+
+      <div class="views" id="views">
+
+       
+       
+            <div class="span-12 card tilt">
+              <h3>Terms of Service</h3>
+              <div class="accordion">
+
+                <div class="acc" data-acc>
+                  <button aria-expanded="false">
+                    <h4>Server Terms</h4>
+                    <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" stroke="#7beaff" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <div class="body"><div style="padding:14px 16px" class="muted">
+                    <ul>
+                      
+                      
+                      <h3>General Terms</h3>
+                      <li>Staff reserve the right to choose the appropiate action based on the severity of the offense made.</li>
+                      <li>NSFW is not permitted and will result in an immediate ban</li>
+                      <li>Disrespect of any kind will not be tolerated in any sort and appropriate action will be taken</li>
+                      <li>No Drama is allowed. Arising/Engaging in drama may impact action on you </li>
+                      <li>No spamming allowed in channels or staff's DMs at all.</li>
+                      <li>Be patient when waiting for a response. Frequent pinging may result in action being taken</li>
+                      <li>No begging permitted.</li>
+                      
+                      
+                      <h3>Advertisements & Promotions</h3>
+                      <li>Any form of advertisements to other servers on Discord or other platforms (including but not limited to Telegram) is not allowed.</li>
+                      <li>Only slot owners are allowed to promote their products on the server.</li>
+                      
+                      
+                      <h3>Copying</h3>
+                      <li>Stealing themes, embed designs, terms, bots, etc will result in an immediate ban from the server</li>
+                      
+                      
+                      <h3>Refunds</h3>
+                      <li>All payments are final. We do not provide refunds after the payment has been sent</li>
+                      <li>In case of products defects (such as not working properly), you are eligible for a refund in case we are not able to resolve the issue or replace your product</li>
+                      
+                      
+                      <h3>Raids</h3>
+                      <li>We do not support server raids by mass tokens, spamming, or any method of raiding</li>
+                      <li>If you've been caught attempting to raid us or other servers will result in an immediate ban as a result of unethical matters</li>
+                       
+                    </ul>
+                  </div></div>
+                </div>
+
+
+                <div class="acc" data-acc>
+                  <button aria-expanded="false">
+                    <h4>Slot Terms</h4>
+                    <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" stroke="#7beaff" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <div class="body"><div style="padding:14px 16px" class="muted">
+                    <ul>
+                      <h3>General</h3>
+                      <li>Pings reset daily at <b>12 AM GMT</b></li>
+                      <li>Exceeding ping limit, using role mentions, or a different type of ping than agreed on may result in slot revocation.</li>
+                      <li>Flooding/Spamming your slot with the <b>same message</b> (6 or more per day) to push out other sellers from search results will lead to action against your slot.</li>
+                      <li>Slots with no activity for 14 days or more will be revoked due to inactivity.</li>
+                      <li>Slot positions are not permanent. Users may pay more to increase their slot’s visibility/position.</li>
+                      <li>Slot sharing or reselling is strictly prohibited. Third-party usage is not allowed</li>
+                      <li>Any form of ban evasion will result in immediate slot termination & ban</li>
+                      <li>All members must adhere to our Server Terms. Violations may result in revocation</li>
+                      
+                      
+                      <h3>Refunds & Compensations</h3>
+                      <li>If payment is less than required, you will be assigned a slot your payment covers. Any leftover amount will be stored as credit for future purchases.</li> 
+                      <li>All purchases are final once payment is sent</li>
+                      <li>Upon server terms, weekly/monthly slot owners will receive extra time as compensation while waiting for server recovery</li>
+                      
+                      
+                      <h3>Scamming</h3>
+                      <li>Any act of scamming, attempted fraud, assisting scammers, or unethical behavior will result in immediate revoke & ban</li>
+                      <li>Users flagged as Scammers/DWC due to scamming, refusing MM, or suspicious activity will face immediate consequences.</li>
+                      
+                      
+                      <h3>MM Refusal</h3>
+                      <li>A mutually trusted middleman must be used if requested by either party (buyer or seller).</li>
+                      <li>No excuses will be accepted, such as amount too low, don't have enough balance, auto-buy only sales, etc</li>
+                      <li>Refusing to use a trusted and recognized MM without valid reason is a violation.</li>
+                      
+                      
+                      <h3>Reports</h3>
+                      <li><b>Report Limits:</b></li>
+                      <ul>
+                          <li>Weekly/Monthly Slot Owners: 3 valid reports</li>
+                          <li>Lifetime Slot Owner: 5 valid reports</li>
+                      </ul>
+                      <li>If reported, you’ll have 12 hours to present your side. Failure to respond may result in slot revocation.</li>
+                      <li>Your slot may be temporarily held during the report review process.</li>
+                      
+                      
+                      <h3>Advertisements</h3>
+                      <li>Advertising Discord servers, Telegram groups, or other communities is not allowed, including in DMs, unless explicitly requested by a buyer</li>
+                      <li>You may invite buyers to a support or vouch server, but <b>no promotions or unrelated ads</b> are allowed there.</li>
+                      <li>GFX Designers must blur or remove any invite links in their posted samples.</li>
+                      
+                      
+                      <h3>Recoveries</h3>
+                      <li>If the server is taken down, you’ll have 72 hours to rejoin the new server via the invite link whill will be posted on our website and Telegram when ready.</li>
+                      <li>Failure to rejoin within the timeframe may result in slot loss</li>
+                      <li>You may be asked to provide your purchase transcript to recover or transfer your slot.</li>
+                      
+                      
+                      <h3>Autobuy</h3>
+                      <li>Autobuy sites must be used for instant delivery</li>
+                      <li>Messages like “DM to claim,” “Wait for restock,” or similar misleading stock claims are strictly prohibited.</li>
+                    </ul>
+                  </div></div>
+                </div>
+
+
+
+
+
+                <div class="acc" data-acc>
+                  <button aria-expanded="false">
+                    <h4>Middleman Terms</h4>
+                    <svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" stroke="#7beaff" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <div class="body"><div style="padding:14px 16px" class="muted">
+                    <ul>
+                     <h3>-</h3>
+                     <li>-</li>
+                    </ul>
+                  </div></div>
+                </div>
+
+    </section>
+
+  </div>
+
+<script>
+  // helpers
+  const $ = (s, ctx=document) => ctx.querySelector(s);
+  const $$ = (s, ctx=document) => Array.from(ctx.querySelectorAll(s));
+
+  // Page enter animation
+  (function(){
+    const root = $('#root'); if(!root) return;
+    requestAnimationFrame(()=> root.classList.add('page-enter-active'));
+  })();
+
+  // Typing effect
+  (function(){
+    const el = $('#typed'); if(!el) return;
+    const text = "Horizon.mp";
+    let i = 0;
+    function step(){
+      i++;
+      el.textContent = text.slice(0, i);
+      if(i < text.length) setTimeout(step, 22);
+      else el.classList.remove('typed'); // remove caret after done
+    }
+    setTimeout(step, 250);
+  })();
+
+  // Mobile burger
+  (function(){
+    const burger = $('.burger'); const nav = $('#nav');
+    if(!burger || !nav) return;
+    burger.addEventListener('click', ()=>{
+      const open = nav.classList.toggle('open');
+      burger.setAttribute('aria-expanded', String(open));
+    });
+    $$('#nav a').forEach(a => a.addEventListener('click', ()=> nav.classList.remove('open')));
+  })();
+
+  // Smooth scroll with header offset
+  function scrollToId(id){
+    const el = document.querySelector(id); if(!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 72;
+    window.scrollTo({top:y, behavior:'smooth'});
+  }
+
+  // Scroll reveal
+  (function(){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('show');
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold: 0.12, rootMargin: '0px 0px -8% 0px'});
+
+    window.refreshReveals = function(){
+      document.querySelectorAll('.card, .acc, .tick').forEach(el=>{
+        if(!el.classList.contains('reveal')) el.classList.add('reveal');
+        if(!el.classList.contains('show')) io.observe(el);
+      });
+    };
+
+    // initial pass
+    refreshReveals();
+  })();
+
+  
+  (function(){
+    const viewsWrap = $('#views');
+    const tabs = $$('[data-tab]');
+    const views = { fortnite: $('#fortnite'), roblox: $('#roblox') };
+    if(!viewsWrap || !tabs.length) return;
+
+    function showGuide(name){
+      if(!views[name]) return;
+      tabs.forEach(b=> b.classList.toggle('active', b.getAttribute('data-tab')===name));
+      const next = views[name];
+      const current = Object.values(views).find(v => v && !v.classList.contains('hidden'));
+      if(current === next){
+        refreshReveals();
+        scrollToId('#guides');
+        return;
+      }
+
+      const startH = current ? current.offsetHeight : 0;
+      viewsWrap.style.height = startH+'px';
+      viewsWrap.style.overflow = 'hidden';
+
+      next.classList.remove('hidden');
+      const endH = next.offsetHeight;
+
+      viewsWrap.style.transition = 'height .48s var(--ease)';
+      requestAnimationFrame(()=>{ viewsWrap.style.height = endH+'px'; });
+
+      if(current){
+        current.classList.add('xfade-exit','xfade-exit-active');
+        setTimeout(()=>{ current.classList.add('hidden'); current.classList.remove('xfade-exit','xfade-exit-active'); }, 500);
+      }
+
+      next.classList.add('xfade-enter');
+      requestAnimationFrame(()=>{
+        next.classList.add('xfade-enter-active');
+        setTimeout(()=>{
+          next.classList.remove('xfade-enter','xfade-enter-active');
+          viewsWrap.style.height = '';
+          viewsWrap.style.overflow = '';
+          viewsWrap.style.transition = '';
+          refreshReveals();
+          scrollToId('#guides');
+        }, 500);
+      });
+    }
+    tabs.forEach(t => t.addEventListener('click', e => {
+      const name = t.getAttribute('data-tab'); if(!name) return;
+      if(t.tagName === 'A') e.preventDefault();
+      showGuide(name);
+    }));
+    // default
+    showGuide('fortnite');
+  })();
+
+  // Accordions (single-open within each accordion container)
+  $$('.accordion').forEach(accWrap => {
+  const items = $$('.acc', accWrap);
+
+  items.forEach(acc => {
+    const btn = acc.querySelector('button');
+    const body = acc.querySelector('.body');
+    if (!btn || !body) return;
+
+    btn.addEventListener('click', () => {
+      const isOpen = acc.hasAttribute('open');
+
+      // Close all other items
+      items.forEach(i => {
+        i.removeAttribute('open');
+        const b = i.querySelector('.body');
+        if (b) b.style.maxHeight = null;
+        const bBtn = i.querySelector('button');
+        if (bBtn) bBtn.setAttribute('aria-expanded', 'false');
+      });
+
+      // Toggle this one
+      if (!isOpen) {
+        acc.setAttribute('open', '');
+        btn.setAttribute('aria-expanded', 'true');
+        body.style.maxHeight = body.scrollHeight + "px"; // expand to fit
+      } else {
+        acc.removeAttribute('open');
+        btn.setAttribute('aria-expanded', 'false');
+        body.style.maxHeight = null; // collapse
+      }
+    });
+  });
+});
+
+  // Dynamic year
+  const y = document.getElementById('y'); if(y) y.textContent = new Date().getFullYear();
+
+  // Cursor-follow glow + parallax dotted grid + dot brightening
+  (function(){
+    const doc = document.documentElement;
+    const glow = document.querySelector('.glow');
+    const tail = document.querySelector('.glow-tail');
+    let ready = false, mx = innerWidth/2, my = innerHeight/2, tx = mx, ty = my;
+    let glowDotsT = null;
+
+    function onPointerMove(e){
+      mx = e.clientX; my = e.clientY;
+      doc.style.setProperty('--gx', mx+'px');
+      doc.style.setProperty('--gy', my+'px');
+      const px = ((mx / innerWidth) - 0.5) * 10;
+      const py = ((my / innerHeight) - 0.5) * 10;
+      document.body.style.setProperty('--bgx', px+'px');
+      document.body.style.setProperty('--bgy', py+'px');
+
+      // brighten dot grid while moving
+      document.body.classList.add('glow-active');
+      clearTimeout(glowDotsT);
+      glowDotsT = setTimeout(()=> document.body.classList.remove('glow-active'), 300);
+
+      if(!ready){
+        glow?.classList.add('ready');
+        tail?.classList.add('ready');
+        ready = true;
+      }
+    }
+
+    window.addEventListener('pointermove', onPointerMove, {passive:true});
+
+    // inertia tail
+    (function follow(){
+      tx += (mx - tx)*0.15; ty += (my - ty)*0.15;
+      doc.style.setProperty('--gtx', tx+'px');
+      doc.style.setProperty('--gty', ty+'px');
+      requestAnimationFrame(follow);
+    })();
+  })();
+
+  // Interactive tilt on cards, buttons, tabs
+  (function(){
+    if(!matchMedia('(pointer:fine)').matches) return;
+    const els = Array.from(document.querySelectorAll('.tilt, .btn, .tab'));
+    const clamp=(n,min,max)=>Math.max(min,Math.min(n,max));
+    els.forEach(el=>{
+      let raf=null;
+      function onMove(e){
+        const r = el.getBoundingClientRect();
+        const px = (e.clientX - r.left)/r.width - .5;
+        const py = (e.clientY - r.top)/r.height - .5;
+        const rx = clamp(-py*10, -8, 8);
+        const ry = clamp(px*10, -8, 8);
+        if(!raf) raf = requestAnimationFrame(()=>{
+          el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+          raf=null;
+        });
+      }
+      function onLeave(){ el.style.transform='perspective(900px) rotateX(0) rotateY(0)'; }
+      el.addEventListener('pointermove', onMove);
+      el.addEventListener('pointerleave', onLeave);
+    });
+  })();
+
+  // ===== Minimal runtime tests (console only) =====
+  (function(){
+    const tests = [];
+    function test(name, fn){
+      try{ fn(); console.log('%cPASS','color:#30d158;font-weight:700', name); tests.push({name, pass:true}); }
+      catch(err){ console.error('%cFAIL','color:#ff453a;font-weight:700', name, err); tests.push({name, pass:false, err}); }
+    }
+
+    test('refreshReveals() is defined', ()=>{
+      if(typeof window.refreshReveals !== 'function') throw new Error('refreshReveals not a function');
+    });
+
+    test('refreshReveals() runs and tags elements', ()=>{
+      window.refreshReveals();
+      const count = document.querySelectorAll('.reveal').length;
+      if(count === 0) throw new Error('no elements received .reveal');
+    });
+
+    test('cursor glow CSS vars update on pointermove', ()=>{
+      const evt = new PointerEvent('pointermove', {clientX:101, clientY:103});
+      window.dispatchEvent(evt);
+      const gx = getComputedStyle(document.documentElement).getPropertyValue('--gx').trim();
+      const gy = getComputedStyle(document.documentElement).getPropertyValue('--gy').trim();
+      if(!gx || !gy) throw new Error('CSS vars not updated');
+    });
+  })();
+</script>
+</body>
+</html>
